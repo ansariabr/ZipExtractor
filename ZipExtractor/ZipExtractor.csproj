@@ -7,10 +7,26 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ZipUtil</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.0.1</Version>
+    <RepositoryUrl>https://github.com/ansariabr/ZipExtractor</RepositoryUrl>
+    <Description>A CLI for nested zip file extractor</Description>
+    <PackageReleaseNotes>Releasing first version</PackageReleaseNotes>
+    <PackageTags>zip,files,extractor,unzip,expand</PackageTags>
+    <PackageProjectUrl>https://github.com/ansariabr/ZipExtractor</PackageProjectUrl>
+    <Authors>Abdul Rahman Ansari</Authors>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
