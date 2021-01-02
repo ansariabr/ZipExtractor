@@ -13,14 +13,14 @@ namespace ZipExtractor
     UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue, AllowArgumentSeparator = false)]
     class Program
     {
-        [Option("-k|--keep", CommandOptionType.SingleValue, Description = "Whether to keep all zip files after extraction. Set either true or false. By default all zip files are deleted after extraction")]
-        public bool KeepZipAfterExtract { get; } = false;
+        [Option("-d|--delete", Description = "Delete all zip files after extraction")]
+        public bool DeleteAllZipAfterExtract { get; } = false;
 
         [Option("-o|--open", Description = "Open folder after extraction")]
-        public bool OpenFolderAfterExtract { get; set; }
+        public bool OpenFolderAfterExtract { get; }
 
-        [Option("-d", Description = "By default files are overwritten on extraction if there is any. Use this option to disable this.")]
-        public bool DontOverwriteFiles { get; } = true;
+        [Option("-n", Description = "By default files are overwritten on extraction if there is any. Use this option to disable this")]
+        public bool? DontOverwriteFiles { get; }
 
         [Argument(0, "Either relative or absolute path of zip file")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Either relative or absolute path of zip file is required")]
@@ -34,11 +34,12 @@ namespace ZipExtractor
         {
             try
             {
-                Console.WriteLine($"Extracting - {ZipFileToExtract}");
-                ExtractAll(ZipFileToExtract, out List<string> extractedZipFilePath, overwriteFiles: DontOverwriteFiles);
+                string fullyQualifiedZipFilePath = Path.GetFullPath(ZipFileToExtract);
+                ExtractAll(fullyQualifiedZipFilePath, out List<string> extractedZipFilePath, overwriteFiles: DontOverwriteFiles.HasValue ? false : true);
 
-                if (KeepZipAfterExtract == false)
+                if (DeleteAllZipAfterExtract)
                 {
+                    Console.WriteLine();
                     foreach (var zipFilePath in extractedZipFilePath)
                     {
                         try
@@ -55,9 +56,11 @@ namespace ZipExtractor
                 }
 
                 if (OpenFolderAfterExtract)
-                    OpenFolder(ZipFileToExtract);
+                    OpenFolder(fullyQualifiedZipFilePath);
+
+                Console.WriteLine($"Completed");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Something went wrong - {ex}");
             }
@@ -71,6 +74,7 @@ namespace ZipExtractor
                 pathOfExtractedZipFiles.Add(fullPath);
                 string extractPath = $@"{Path.GetDirectoryName(Path.GetFullPath(fullPath))}\{Path.GetFileNameWithoutExtension(fullPath)}";
                 ZipFile.ExtractToDirectory(fullPath, extractPath, overwriteFiles);
+                Console.WriteLine($"Extracted - {fullPath}");
 
                 foreach (var allFiles in Directory.GetFiles(extractPath))
                 {
@@ -91,47 +95,43 @@ namespace ZipExtractor
             }
         }
 
-        private void OpenFolder(string extractedFolderPath)
+        private void OpenFolder(string fullFilePath)
         {
-            string fullZipExtractedPath = Path.GetFullPath(extractedFolderPath);
+            var directoryPath = Path.GetDirectoryName(fullFilePath);
             var psi = new ProcessStartInfo();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 psi.FileName = "open";
+                psi.ArgumentList.Add(directoryPath);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 psi.FileName = "xdg-open";
+                psi.ArgumentList.Add(directoryPath);
             }
             else
             {
-                psi.FileName = "cmd";
-                psi.ArgumentList.Add("/C");
-                psi.ArgumentList.Add("start");
+                //opening the folder in file explorer, by default the extracted folder will be selected
+                string fullExtractedDirPath = string.Format($@"{directoryPath}\{Path.GetFileNameWithoutExtension(fullFilePath)}");
+                psi.FileName = "explorer";
+                psi.Arguments = string.Format("/select,\"{0}\"", fullExtractedDirPath);
             }
 
-            psi.ArgumentList.Add(fullZipExtractedPath);
             Process.Start(psi);
         }
     }
 
     class ValidZipFileAttribute : ValidationAttribute
     {
-        public ValidZipFileAttribute()
-            : base("The value must be a valid path(either relative or absolute) to a zip file")
-        {
-        }
-
         protected override ValidationResult IsValid(object value, ValidationContext context)
         {
-            if (string.IsNullOrWhiteSpace(Convert.ToString(value)))
-                return new ValidationResult(FormatErrorMessage(context.DisplayName));
+            string fullyQualifiedFilePath = Path.GetFullPath(Convert.ToString(value));
 
-            if (!File.Exists(Path.GetFullPath(Convert.ToString(value))))
-                return new ValidationResult($"File Not Found at - {Path.GetFullPath(Path.GetFullPath(Convert.ToString(value)))}");
+            if (!File.Exists(fullyQualifiedFilePath))
+                return new ValidationResult($"File Not Found at - {fullyQualifiedFilePath}");
 
-            if (!string.Equals(".zip", Path.GetExtension(Convert.ToString(value)), StringComparison.InvariantCultureIgnoreCase))
-                return new ValidationResult($"This is not a zip file - {Path.GetFullPath(Path.GetFullPath(Convert.ToString(value)))}");
+            if (!string.Equals(".zip", Path.GetExtension(fullyQualifiedFilePath), StringComparison.InvariantCultureIgnoreCase))
+                return new ValidationResult($"Invalid zip file - {fullyQualifiedFilePath}");
 
             return ValidationResult.Success;
         }

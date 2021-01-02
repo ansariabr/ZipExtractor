@@ -9,7 +9,7 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <RepositoryUrl>https://github.com/ansariabr/ZipExtractor</RepositoryUrl>
     <Description>A CLI for nested zip file extractor</Description>
     <PackageReleaseNotes>Releasing first version</PackageReleaseNotes>
