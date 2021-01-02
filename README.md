@@ -26,9 +26,9 @@ Once installed, it can be invoked using ```ziputil``` command from command promp
 Usage: ziputil <zip file path> [options]
 
 Options:
-  -d|--delete           Delete all zip files after extraction
-  -o|--open             Open folder after extraction
-  -n                    By default files are overwritten on extraction if there is any. Use this option to disable this
+  -d|--delete     Delete all zip files after extraction
+  -o|--open       Open folder after extraction
+  -n              By default files are overwritten on extraction if there is any. Use this option to disable this
 
 Note : Zip file path can be relative or absolute.
 ```
