@@ -29,6 +29,7 @@ Options:
   -d|--delete     Delete all zip files after extraction
   -o|--open       Open folder after extraction
   -n              By default files are overwritten on extraction if there is any. Use this option to disable this
+  -?|-h|--help    Show help information
 
 Note : Zip file path can be relative or absolute.
 ```
